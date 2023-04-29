@@ -2,6 +2,7 @@
 # WhatThe  By: Scott Parrish Ver:0.2 04/28/2023
 # A small app to display important information about a system for use when troubleshooting or 
 # configuring.
+# GitHub: https://github.com/slparrish/WhatThe.git
 
 from breezypythongui import EasyFrame
 import platform

@@ -55,13 +55,20 @@ class HostInfo():
         hostname = socket.gethostname()     # should be the same as from getHostname() above
         ip_addr = socket.gethostbyname(hostname)
         return ip_addr
+    
+    def getIP2(self):
+        s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+        s.connect(("8.8.8.8", 80))
+        host_ip = s.getsockname()[0]
+        s.close()
+        return host_ip
 
 def main() -> None:
     root = WhatThe()
     myHost = HostInfo()
     genString = f'Hostname: {myHost.getHostname()}\nSystem: {myHost.system()}\nVersion: {myHost.version()}'
     root.genOutputArea.setText(genString)
-    netString = f'IPv4 Address: {myHost.getIP()}'
+    netString = f'IPv4 Address: {myHost.getIP2()}'
     root.netOutputArea.setText(netString)
     
     

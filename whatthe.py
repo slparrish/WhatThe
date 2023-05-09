@@ -7,6 +7,7 @@
 from breezypythongui import EasyFrame
 import platform
 import socket
+import shutil
 
 class WhatThe(EasyFrame):
     """Initializes window"""
@@ -62,11 +63,21 @@ class HostInfo():
         host_ip = s.getsockname()[0]
         s.close()
         return host_ip
+    
+    def getDisk(self, path: str):
+        return shutil.disk_usage(path)
+
+
 
 def main() -> None:
     root = WhatThe()
     myHost = HostInfo()
-    genString = f'Hostname: {myHost.getHostname()}\nSystem: {myHost.system()}\nVersion: {myHost.version()}'
+    genString = f'Hostname: {myHost.getHostname()}\n\
+System: {myHost.system()}\n\
+Version: {myHost.version()}\n\
+Disk Usage: Total:{myHost.getDisk("/")[0]/1000000000:.1f} GB \n\
+            Used: {myHost.getDisk("/")[1]/1000000000:.1f} GB\n\
+            Free: {myHost.getDisk("/")[2]/1000000000:.1f} GB'
     root.genOutputArea.setText(genString)
     netString = f'IPv4 Address: {myHost.getIP2()}'
     root.netOutputArea.setText(netString)

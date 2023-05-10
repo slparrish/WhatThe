@@ -6,15 +6,14 @@
 
 from breezypythongui import EasyFrame
 from tkinter import PhotoImage
-# from tkinter.font import Font
-# import sys
+import tkinter.filedialog
+from hostinfo import HostInfo
 import platform
-import socket
-import shutil
+
 
 class WhatThe(EasyFrame):
     """Initializes window"""
-    
+    counter = 0
     def __init__(self,
                 title="WhatThe",
                 width=700,
@@ -23,84 +22,61 @@ class WhatThe(EasyFrame):
                 resizable=True): 
                
         super().__init__(title, width, height, background, resizable)
+        
+        def diskInfo():
+            pathname = tkinter.filedialog.askdirectory(parent=self)
+            # print(pathname)
+            dirInfo = f'Disk Usage: Total:{HostInfo.getDisk(self, pathname)[0]/1000000000:.1f} GB\n\
+            Used: {HostInfo.getDisk(self, pathname)[1]/1000000000:.1f} GB\n\
+            Free: {HostInfo.getDisk(self, pathname)[2]/1000000000:.1f} GB'
+            self.messageBox(title=pathname, message=dirInfo, width=30, height=5)
+
 
         self.imgfile = f'{platform.system().lower()}.gif'
         self.titleImg = PhotoImage(file="whatthe.gif")
         titleLabel = self.addLabel("", row=0, column=0, columnspan=2, sticky="NSEW")
         titleLabel["image"] = self.titleImg
-        # Potentially panelize groups
+
         # General Group
-        # self.genLabel = self.addLabel('General Information:', row=1, column=0, sticky="SW")
+        genString = "Default text... Hit the refresh\nbutton to show correct info."
         self.genOutputArea = self.addTextArea("", row=1, column=0, width=5, height=5)
-        imageLabel = self.addLabel("", row=1, column=1, sticky="NSEW") 
+        self.genOutputArea.setText(genString)
+
+        # Image group
+        self.imageText = self.addLabel(f'Image for {platform.system()}', row=1, column=1, rowspan=1, sticky="NEW")
+        imageLabel = self.addLabel("", row=1, column=1, sticky="SEW") 
         self.image = PhotoImage(file=self.imgfile)
         imageLabel["image"] = self.image
         # Networking group
         self.netLabel = self.addLabel('Networking:', row=3, column=0, sticky="SW")
         self.netOutputArea = self.addTextArea("", row=4, column=0, width=5, height=5)
+        netString =  f'Loopback: 127.0.0.1\nIPv4: {HostInfo.getIP2(self)}'
+        self.netOutputArea.setText(netString)
+        # Refresh group
+        self.refreshLabel = self.addLabel('Refreshes:', row=3, column=1, sticky="NSEW")
+        self.refreshOutField = self.addTextField("", row=4, column=1, rowspan=1, width=3, sticky="N", state="readonly")
+        self.refreshOutField.setText(self.counter)
 
-        self.addButton('Refresh', row=3, column=1)  # need function to refresh info in HostInfo
-        self.addButton('Exit', row=4, column=1, command=exit)
-    
-    def setImage(self, imgfile):
-        self.imgfile = imgfile
+        def refresh():
+            genString = f'Hostname: {HostInfo.getHostname(self)}\nSystem: {HostInfo.system(self)}\nVersion: {HostInfo.version(self)}'
+            netString =  f'Loopback: 127.0.0.1\nIPv4: {HostInfo.getIP2(self)}'
+            self.genOutputArea.setText(genString)
+            self.netOutputArea.setText(netString)
+            self.counter += 1
+            self.refreshOutField.setText(self.counter)
+            
 
-
-# HostInfo() class to gather info about our machine    
-# To do: potentially move some methods into constructor, add more info
-# 
-class HostInfo(): 
-    """Handles gathering host info"""
-    def __init__(self) -> None:
-        pass
-      
-    def getHostname(self):
-        """get hostname from the more portable platform module.  os.uname() isnt as 
-        portable. Returns second element of uname"""
-        return platform.uname()[1]
+        buttonPanel = self.addPanel(row=5, column=0, columnspan=2, background="white")
+        buttonPanel.addButton('Refresh', row=0, column=0, command=refresh)  # refreshes text in text boxes
+        buttonPanel.addButton('Disk Info', row=0, column=1, command=diskInfo)
+        buttonPanel.addButton('Exit', row=0, column=2, command=exit)
     
-    def version(self):
-        return platform.version()
-    
-    def system(self):
-        return platform.system()
-    
-    def getIP(self):
-        """Get IPv4 address of the host"""
-        hostname = socket.gethostname()     # should be the same as from getHostname() above
-        ip_addr = socket.gethostbyname(hostname)
-        return ip_addr
-    
-    def getIP2(self):
-        s=socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-        s.connect(("8.8.8.8", 80))
-        host_ip = s.getsockname()[0]
-        s.close()
-        return host_ip
-    
-    def getDisk(self, path: str):
-        return shutil.disk_usage(path)
 
 
 
 def main() -> None:
     root = WhatThe()
-    myHost = HostInfo()
-    root.setImage("mac.gif")
-    genString = f'Hostname: {myHost.getHostname()}\n\
-System: {myHost.system()}\n\
-Version: {myHost.version()}\n\
-Disk Usage: Total:{myHost.getDisk("/")[0]/1000000000:.1f} GB \n\
-            Used: {myHost.getDisk("/")[1]/1000000000:.1f} GB\n\
-            Free: {myHost.getDisk("/")[2]/1000000000:.1f} GB'
-    # root.image = PhotoImage(file="mac.gif")
-    # root.image = PhotoImage(file="mac.gif")
-    # imageLabel["Image"] = root.image
-    root.genOutputArea.setText(genString)
-    netString = f'IPv4 Address: {myHost.getIP2()}'
-    root.netOutputArea.setText(netString)
-    
-    
+
     root.mainloop()
 
 
